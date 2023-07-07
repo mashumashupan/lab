@@ -1,0 +1,12 @@
+streamlit_csv/
+.DS_Store
+__pycache__/
+
+result/
+
+test.html
+test.csv
+cleaned.csv
+original_data/*
+constants.py
+files/*
