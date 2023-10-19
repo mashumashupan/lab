@@ -7,14 +7,14 @@ public class ObjectFunction{
 	private double[] _arr = new double[460*2];
 	private double[] _result = new double[3];
 
-	public double[] obfunc(double val, int current, int finish) {
+	public double[] obfunc(double val, int current, int finish, int method) {
 		// store values
 		_arr[current] = val;
 
 		if (current == finish - 1){
 			// execute KoalaToSprawlter
 //			System.out.println("execute KoalaToSprawlter");
-			Map<String, Double> results_map = KoalaToSprawlter.execute(_arr);
+			Map<String, Double> results_map = KoalaToSprawlter.execute(_arr, method);
 			_result[0] = results_map.get("sprawl");
 			_result[1] = results_map.get("clutter");
 			_result[2] = results_map.get("sprawlter");

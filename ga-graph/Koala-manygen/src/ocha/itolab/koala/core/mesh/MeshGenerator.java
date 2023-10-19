@@ -21,7 +21,7 @@ public class MeshGenerator {
 
 	
 	
-	public static Mesh generate(Graph g) {
+	public static Mesh generate(Graph g, int method) {
 		Mesh m = new Mesh();
 		
 //		long t1 = System.currentTimeMillis();
@@ -48,7 +48,7 @@ public class MeshGenerator {
 
 //		System.out.println("initial layout");
 		// Calculate initial positions of vertices
-		InitialLayoutInvoker.exec(g, m);
+		InitialLayoutInvoker.exec(g, m, method);
 		
 //		long t4 = System.currentTimeMillis();
 		//System.out.println("[TIME] for force-directed: " + (t4-t3));

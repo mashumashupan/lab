@@ -9,7 +9,7 @@ public class GraphFileReader {
 	static String directory;
 	
 	
-	public static Graph readConnectivity(String filename) {
+	public static Graph readConnectivity(String filename, int method) {
 		graph = new Graph();
 //		System.out.println("open file: " + filename);
 		
@@ -19,7 +19,7 @@ public class GraphFileReader {
 //		System.out.println("close");
 		close();
 //		System.out.println("postprocess");
-		graph.postprocess();
+		graph.postprocess(method);
 		return graph;
 	}
 	

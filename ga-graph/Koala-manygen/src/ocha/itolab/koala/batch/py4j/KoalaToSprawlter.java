@@ -17,18 +17,20 @@ public class KoalaToSprawlter {
 	static int SMOOTHING_ITERATION = 100;
 	static int NUM_PER_GENERATION = 20;
 	static double nnmax = 0.4, nemax = 1930.0, eemax = 60000.0;
-	static double NN_RATIO = 1.0, NE_RATIO = 1.0, EE_RATIO = 0.5;
+//	static double NN_RATIO = 1.0, NE_RATIO = 1.0, EE_RATIO = 0.5;
+//	static double NN_RATIO = 0.5, NE_RATIO = 0.5, EE_RATIO = 1.0;
+	static double NN_RATIO = 1.0, NE_RATIO = 1.0, EE_RATIO = 1.0;
 	
 	/**
 	 * Execute Koala and Sprawlter
 	 */
-	public static Map<String, Double> execute(double init[]) {
+	public static Map<String, Double> execute(double init[], int method) {
 		double sprawlter = 0.0;
 //		System.out.println("generate initial position list");
 		// LinLogLayoutクラスのinitialPosを設定
 		generateInitPositionList(init);
 //		System.out.println("read connectivity");
-		graph = GraphFileReader.readConnectivity(infile);
+		graph = GraphFileReader.readConnectivity(infile, method);
 //		System.out.println("generate edges");
 		graph.generateEdges();
 //		System.out.println("generate mesh");

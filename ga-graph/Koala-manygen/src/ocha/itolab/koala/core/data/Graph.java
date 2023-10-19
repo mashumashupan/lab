@@ -21,8 +21,8 @@ public class Graph {
 	public Mesh mesh = null;
 	
 	
-	public void postprocess() {
-		mesh = MeshGenerator.generate(this);
+	public void postprocess(int method) {
+		mesh = MeshGenerator.generate(this, method);
 	}
 	
 	

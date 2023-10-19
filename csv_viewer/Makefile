@@ -1,6 +1,7 @@
 VENV_NAME?=streamlit_csv
 SOURCE=. $(VENV_NAME)/bin/activate &&
-
+CSV_FILES=result/csv_files
+HTML_FILES=result/html_files
 
 .PHONY: local
 local: ## run local env
@@ -33,3 +34,9 @@ upload: ## Generate html file from csv
 	git add .
 	git commit -m "update files"
 	git push
+
+clean:
+	 find ${CSV_FILES} ${HTML_FILES} -type f -delete
+
+set:
+	mv ../ga-graph/Koala-manygen/result/* ./result/csv_files

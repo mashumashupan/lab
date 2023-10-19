@@ -17,8 +17,11 @@ public class ManyLayoutGenerator {
 		// Repeat generating layouts
 		for(int i = 0; i < ITERATION; i++){
 
+
+			int method = 1;
+			System.out.println("layout algorithm = Koala");
 			// Read graph file
-			Graph graph = GraphFileReader.readConnectivity(inputfilename);
+			Graph graph = GraphFileReader.readConnectivity(inputfilename, method);
 			graph.generateEdges();
 			
 			// Smoothing

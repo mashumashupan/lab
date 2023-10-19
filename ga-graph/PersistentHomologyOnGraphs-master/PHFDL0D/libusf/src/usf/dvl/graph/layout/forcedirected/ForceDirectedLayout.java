@@ -190,26 +190,26 @@ public class ForceDirectedLayout extends GraphLayout<FDLVertex> {
 					}
 			}
 		}
-	}	
+	}
 
-	public static Future<?> [] wait = new Future<?>[TPOOL_THREADS];
+	public static ArrayList<Future<? extends Runnable>> wait = new ArrayList<>();
+
 	public void update( float deltaT ){
 		totalKineticEnergy = 0.0f;
 		
 		bhApprox = new BarnesHutApproximation(layoutVerts);
 
-		for(int i = 0; i < wait.length; i++){
-			if (wait[i] == null || wait[i].isDone()){
-				wait[i] = tpool.submit( new ForceThread(i,TPOOL_THREADS) );
-			}
+		for(int i = 0; i < wait.size() - 1; i++){
+			var finalI = i;
+			wait.add(tpool.submit(() ->  new ForceThread(finalI,TPOOL_THREADS) ));
 		}
 
 		for(int i = 0; i < layoutVerts.size(); i++){
 			layoutVerts.get(i).clearForce();
 		}
 		
-		for(int i = 0; i < wait.length; i++){
-			while( !wait[i].isDone() ){
+		for(int i = 0; i < wait.size() - 1; i++){
+			while( !wait.get(i).isDone() ){
 				try {
 					Thread.sleep(1);
 				} catch (InterruptedException e) {
@@ -223,29 +223,19 @@ public class ForceDirectedLayout extends GraphLayout<FDLVertex> {
 			bforces.get(i).applyForce();
 		}
 		
-		for(int i = 0; i < wait.length; i++){
-			wait[i] = tpool.submit( new PositionThread(i,TPOOL_THREADS,deltaT) );
+		for(int i = 0; i < wait.size() - 1; i++){
+			var finalI = i;
+			wait.add(tpool.submit(() -> new PositionThread(finalI,TPOOL_THREADS,deltaT) ));
 		}
 		
-		for(int i = 0; i < wait.length; i++){
-			while( !wait[i].isDone() ){ 
+		for(int i = 0; i < wait.size() - 1; i++){
+			while( !wait.get(i).isDone() ){
 				try {
 					Thread.sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} 
 			}
-		}
-
-		try {
-			if(!tpool.isShutdown()) {
-				var result = tpool.awaitTermination(1,  java.util.concurrent.TimeUnit.SECONDS);
-				if(!result) {
-					System.out.println("ForceDirectedLayout: thread pool did not terminate");
-				}
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		
 		

@@ -10,6 +10,19 @@ from my_mutation import muSmall
 
 from constants import PNG_PATH
 
+class Config:
+    # hyper volumeの計算に使用するreference point
+    reference_point: tuple[float, float]
+    # 終了条件
+    hypervolume_threshold: float
+    # カウントする条件
+    hv_count_threshold: float
+
+    def __init__(self, rp: tuple[float, float], hv: float, hvc: float):
+        self.reference_point = rp
+        self.hypervolume_threshold = hv
+        self.hv_count_threshold = hvc
+
 
 class NSGA2:
     def __init__(self, obfunc, gen_len):
@@ -19,8 +32,8 @@ class NSGA2:
         # 1つの個体内の遺伝子の数を指定
         self.NDIM = 20
         # 散布図の軸
-        self.PLOT_XLIM_MIN, self.PLOT_XLIM_MAX =  38.0, 52.0
-        self.PLOT_YLIM_MIN, self.PLOT_YLIM_MAX =  1.2, 2.3
+        self.PLOT_XLIM_MIN, self.PLOT_XLIM_MAX =  38.0, 60.0
+        self.PLOT_YLIM_MIN, self.PLOT_YLIM_MAX =  1.2, 2.5
 
         # 適合度を最小化することで最適化されるような適合度クラスの作成
         creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
@@ -99,9 +112,22 @@ class NSGA2:
         NGEN = 35  # 繰り返し世代数
         MU = 20  # 集団内の個体数
         CXPB = 0.9  # 交叉率
-        
+
+        koalaConfig = Config((50.0, 2.0), 5.35, 5.5)
+        phConfig = Config((55.0, 2.2), 1.3, 1.5)
+
+        # TODO: 実行している配置アルゴリズムによって設定を変える
+        def avg(a, b):
+            # 8割型a寄りの平均値を算出
+            return a * 0.8 + b * 0.2
+        rp = (avg(koalaConfig.reference_point[0], phConfig.reference_point[0]), avg(koalaConfig.reference_point[1], phConfig.reference_point[1]))
+        hv = avg(koalaConfig.hypervolume_threshold, phConfig.hypervolume_threshold)
+        hvc = avg(koalaConfig.hv_count_threshold, phConfig.hv_count_threshold)
+        # config = Config(rp, hv, hvc)
+        config = phConfig
+
         # Hyper Volume算出用のreference point
-        ref_hv = [50.0, 2.0]
+        ref_hv = config.reference_point
 
         # 世代ループ中のログに何を出力するかの設定
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -133,7 +159,7 @@ class NSGA2:
         gen = 1
         hv = 0.0
         hv_counter = 0
-        while (hv < 5.35 or hv_counter < 4):
+        while (hv < config.hypervolume_threshold or hv_counter < 4):
             # 子母集団生成
             offspring = tools.selTournamentDCD(pop, len(pop))
             offspring = [self.toolbox.clone(ind) for ind in offspring]
@@ -165,12 +191,12 @@ class NSGA2:
             
             # hypervolumeを表示
             hv = hypervolume(pop, ref_hv)
-            print("**** population hypervolume is %f ****" % hv)
+            print("**** population hypervolume is %.32f ****" % hv)
             
             with open(PNG_PATH+fname, "a") as f:        
                 f.write(logbook.stream)
                 f.write("\n")
-                f.write("**** population hypervolume is %f ****" % hv)
+                f.write("**** population hypervolume is %.32f ****" % hv)
                 f.write("\n")
             
             # 散布図を保存
@@ -178,7 +204,7 @@ class NSGA2:
             
             # 終了条件をhvに変えたことにより変更
             gen += 1
-            if hv >= 5.5:
+            if hv >= config.hypervolume_threshold:
                 hv_counter += 1
 
         # 最終世代のハイパーボリュームを出力

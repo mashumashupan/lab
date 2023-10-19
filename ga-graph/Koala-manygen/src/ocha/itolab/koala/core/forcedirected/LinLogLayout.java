@@ -242,7 +242,7 @@ public class LinLogLayout {
 					{ myRandom(counter, 0) - 0.5,
                     myRandom(counter, 1) - 0.5,
                     is3d ? Math.random() - 0.5 : 0.0 };
-				System.out.println("initial population is too small");
+//				System.out.println("initial population is too small");
 			}
             
             result.put(node, position);
@@ -327,8 +327,6 @@ public class LinLogLayout {
 	
 	
 	public static void exec(Vector edgelist, Vector nodelist, Vector fixlist) {
-		System.out.println("start force directed layout");
-		System.exit(1);
 		//Map<String,Map<String,Double>> graph = readGraph(args[1]);
 		Map<String,Map<String,Double>> graph = constructGraph(edgelist);
 		graph = makeSymmetricGraph(graph);

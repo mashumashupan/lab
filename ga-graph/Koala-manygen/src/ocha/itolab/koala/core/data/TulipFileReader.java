@@ -11,13 +11,13 @@ public class TulipFileReader {
 	static String directory;
 	
 	
-	public static Graph readConnectivity(String filename) {
+	public static Graph readConnectivity(String filename, int method) {
 		graph = new Graph();
 		open(filename);
 		read();
 		close();
 		
-		graph.mesh = MeshGenerator.generate(graph);
+		graph.mesh = MeshGenerator.generate(graph, method);
 		return graph;
 	}
 	

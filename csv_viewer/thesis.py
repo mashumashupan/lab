@@ -19,11 +19,11 @@ def get_html_files(html_dir_name):
 
     # get intial graph html files
     for graph_no in range(20):
-        path = "./files/" + html_dir_name + "/layout0-" + str(graph_no) + ".html"
+        path = "./result/" + html_dir_name + "/layout0-" + str(graph_no) + ".html"
         with open(path) as f:
             intial[graph_no] = f.read()
 
-        path = "./files/" + html_dir_name + "/layout24-" + str(graph_no) + ".html"
+        path = "./result/" + html_dir_name + "/layout34-" + str(graph_no) + ".html"
         with open(path) as f:
             optimized[graph_no] = f.read()
 
@@ -48,7 +48,7 @@ def each_graph():
     ## main contents
     st.title("Graph Viewer")
 
-    path = "./files/html_files/layout" + str(gen_no) + "-" + str(graph_no) + ".html"
+    path = "./result/html_files/layout" + str(gen_no) + "-" + str(graph_no) + ".html"
     with open(path) as f:
         _html = f.read()
         components.html(_html, height=800, width=800)

@@ -16,14 +16,15 @@ public class InitialLayoutInvoker {
 	
 	static int LINLOG = 1; // calculate by LinLog (in ocha.itolab.koala.core.forcedirected)
 	static int READGML = 2; // calculate by GML library
-	static int method = LINLOG;
+	static int PH = 3; // calculate by Persistent Homology (in ocha.itolab.koala.core.forcedirected)
+//	static int method = LINLOG;
 	static String path = "C:/itot/projects/FRUITSNet/Koala/ogdf-layout/";
  	static String filename = "edges_sm.gml";
 	
 	/**
 	 * Execute
 	 */
-	public static void exec(Graph g, Mesh m) {
+	public static void exec(Graph g, Mesh m, int method) {
 		graph = g;
 		mesh = m;
 		constructEdge();
@@ -31,9 +32,14 @@ public class InitialLayoutInvoker {
 		// for test
 		//writeEdgeFile();
 				
-		if(method == LINLOG)
+		if(method == LINLOG) {
+			System.out.println("layout algorithm = Koala");
+			LinLogLayout.exec(edgelist, nodelist, null);
+		}
+		if(method == PH) {
+			System.out.println("layout algorithm = Persistent Homology");
 			PersistentHomology.exec(edgelist, nodelist, null);
-			// LinLogLayout.exec(edgelist, nodelist, null);
+		}
 		if(method == READGML)
 			GmlFileReader.read(edgelist, nodelist, (path + filename));
 		
