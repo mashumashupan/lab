@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from deap import base, creator, tools
 from deap.benchmarks.tools import hypervolume
-
+from history_evaluation_stats import HistoryEvaluationStats
 from my_mutation import muSmall
 
 from constants import PNG_PATH
@@ -25,7 +25,7 @@ class Config:
 
 
 class NSGA2:
-    def __init__(self, obfunc, gen_len):
+    def __init__(self, obfunc, write_layout_file_func, gen_len):
         ## 問題固有のパラメタ
         # 遺伝子が取り得る値の範囲を指定
         self.MIN_COORDINATE, self.MAX_COORDINATE = -10.0, 10.0
@@ -69,6 +69,9 @@ class NSGA2:
         ## 目的関数の設定
         self.obfunc = obfunc
 
+        ## layout.csvを出力用の関数を設定
+        self.write_layout_file_func = write_layout_file_func
+
     def setting(self):
         ## 選択
         # 個体選択法"select"を登録
@@ -103,7 +106,9 @@ class NSGA2:
         #     up=self.MAX_COORDINATE,
         # )
         # 評価関数"evaluate"を登録
-        self.toolbox.register("evaluate", self.obfunc)
+        # self.toolbox.register("evaluate", self.obfunc)
+        self.historyEvaluationStats = HistoryEvaluationStats(self.obfunc)
+        self.toolbox.register("evaluate", self.historyEvaluationStats.evaluate_fitness)
 
     def main(self, fname="output.txt"):
         self.setting()
@@ -141,10 +146,45 @@ class NSGA2:
         pop = self.toolbox.population(n=MU)
         self.pop_init = pop[:]
         invalid_ind = [ind for ind in pop if not ind.fitness.valid]
-        fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
+
+        # TODO 削除
+        self.write_layout_file_func(0, pop)
+
+        ## clutterのstatsを算出
+        self.historyEvaluationStats.add_individuals(invalid_ind, 0)
+        self.historyEvaluationStats.write_csv()
+
+        fitnesses = self.toolbox.map(
+            self.toolbox.evaluate,
+            invalid_ind,
+            [0 for i in range(NGEN)],
+            [i for i in range(self.NDIM)],
+        )
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
         pop = self.toolbox.select(pop, len(pop))
+
+        # 軸の上限と下限をfitnesses_initから算出
+        fitnesses_init = np.array(
+            [list(self.pop_init[i].fitness.values) for i in range(len(self.pop_init))]
+        )
+        # 軸の設定(軸の最小値/最大値は、プロット点の最小値/最大値より少しずらす)
+        self.PLOT_XLIM_MIN = (
+                min(fitnesses_init[:, 0]) - max(fitnesses_init[:, 0]) / 100.0
+        )
+        self.PLOT_XLIM_MAX = (
+                max(fitnesses_init[:, 0]) + max(fitnesses_init[:, 0]) / 100.0
+        )
+        self.PLOT_YLIM_MIN = (
+                min(fitnesses_init[:, 1]) - max(fitnesses_init[:, 1]) / 10.0
+        )
+        self.PLOT_YLIM_MAX = (
+                max(fitnesses_init[:, 1]) + max(fitnesses_init[:, 1]) / 10.0
+        )
+        # Hyper Volume算出用のreference point
+        self.ref_hv = [max(fitnesses_init[:, 0]), max(fitnesses_init[:, 1])]
+        # 初期レイアウトをcsv出力
+        self.write_layout_file_func(0, pop)
 
         record = stats.compile(pop)
         logbook.record(gen=0, evals=len(invalid_ind), **record)
@@ -153,13 +193,13 @@ class NSGA2:
             f.write(logbook.stream)
 
         # 最適計算の実行
-        # for gen in range(1, NGEN):
+        for gen in range(1, NGEN):
         
         # 終了条件をhvに変える → while条件へ
-        gen = 1
-        hv = 0.0
-        hv_counter = 0
-        while (hv < config.hypervolume_threshold or hv_counter < 4):
+        # gen = 1
+        # hv = 0.0
+        # hv_counter = 0
+        # while (hv < config.hypervolume_threshold or hv_counter < 4):
             # 子母集団生成
             offspring = tools.selTournamentDCD(pop, len(pop))
             offspring = [self.toolbox.clone(ind) for ind in offspring]
@@ -180,12 +220,26 @@ class NSGA2:
 
             # 適応度を削除した個体について適応度の再評価を行う
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-            fitnesses = self.toolbox.map(self.toolbox.evaluate, invalid_ind)
+
+            ## clutterのstatsを算出
+            self.historyEvaluationStats.add_individuals(invalid_ind, gen)
+            self.historyEvaluationStats.write_csv()
+
+            # 既存の評価関数
+            fitnesses = self.toolbox.map(
+                self.toolbox.evaluate,
+                invalid_ind,
+                [gen for i in range(NGEN)],
+                [i for i in range(self.NDIM)],
+            )
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
 
+            # 過去の世代と新しい世代の中から
             # 次世代を選択
             pop = self.toolbox.select(pop + offspring, MU)
+
+            # 統計情報を記録
             record = stats.compile(pop)
             logbook.record(gen=gen, evals=len(invalid_ind), **record)
             
@@ -203,14 +257,17 @@ class NSGA2:
             self.viz(pop, gen)
             
             # 終了条件をhvに変えたことにより変更
-            gen += 1
-            if hv >= config.hypervolume_threshold:
-                hv_counter += 1
+            # gen += 1
+            # if hv >= config.hypervolume_threshold:
+            #     hv_counter += 1
 
         # 最終世代のハイパーボリュームを出力
         # [11.0, 11.0] は Reference Point (参照点): 目的関数と同じだけ指定
         # ハイパーボリュームの値が大きい = パレートラインが広範囲に広がっている = 良いパレートライン
         print("Final population hypervolume is %f" % hypervolume(pop, ref_hv))
+
+        # 最終的に残った遺伝子を全てファイル出力
+        self.write_layout_file_func(gen, pop)
 
         return pop, self.pop_init, logbook
 

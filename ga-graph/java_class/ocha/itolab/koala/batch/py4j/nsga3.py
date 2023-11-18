@@ -1,3 +1,4 @@
+# pytype: skip-file
 # 必要なライブラリーのインポート
 import random
 from math import factorial

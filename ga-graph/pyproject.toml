@@ -1,0 +1,68 @@
+[project]
+name = "ga-graph"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "mashumashupan", email = "mashumashupan@gmail.com" }
+]
+dependencies = [
+    "asgiref>=3.7.2",
+    "black>=23.10.0",
+    "click>=8.1.7",
+    "contourpy>=1.1.1",
+    "cycler>=0.12.1",
+    "deap>=1.4.1",
+    "dj-database-url>=2.1.0",
+    "Django>=4.2.6",
+    "django-environ>=0.11.2",
+    "django-heroku>=0.3.1",
+    "fonttools>=4.43.1",
+    "isort>=5.12.0",
+    "kiwisolver>=1.4.5",
+    "matplotlib>=3.7.3",
+    "mypy-extensions>=1.0.0",
+    "numpy>=1.24.4",
+    "packaging>=23.2",
+    "pathspec>=0.11.2",
+    "Pillow>=10.1.0",
+    "platformdirs>=3.11.0",
+    "plotly>=5.17.0",
+    "psycopg2>=2.9.9",
+    "py4j>=0.10.9.7",
+    "pyparsing>=3.1.1",
+    "PyPDF2>=3.0.1",
+    "python-dateutil>=2.8.2",
+    "python-magic>=0.4.27",
+    "reportlab>=4.0.6",
+    "s3cmd>=2.3.0",
+    "scipy>=1.10.1",
+    "six>=1.16.0",
+    "sqlparse>=0.4.4",
+    "tenacity>=8.2.3",
+    "tomli>=2.0.1",
+    "tulip-python>=5.7.2",
+    "WebOb>=1.8.7",
+    "whitenoise>=6.6.0",
+    "wsgi-basic-auth>=1.1.0",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[tool.pytype]
+inputs = ['java_class/ocha/itolab/koala/batch/py4j']
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.rye.scripts]
+build = {cmd = "cd Koala-manygen && javac -cp ../test/share/py4j/py4j0.10.9.5.jar:../java_class/:../PersistentHomologyOnGraphs-master/PHFDL0D/libusf/src/ -d ../java_class/ src/ocha/itolab/koala/**/*.java ../PersistentHomologyOnGraphs-master/PHFDL0D/libusf/src/usf/dvl/graph/**/*.java"}
+ga = { cmd = "python3 java_class/ocha/itolab/koala/batch/py4j/main.py"}
+clean = { cmd = "find Koala-manygen/result Koala-manygen/plot_result -type f -delete" }
